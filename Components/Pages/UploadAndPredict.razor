@@ -3,83 +3,208 @@
 @inject IConfiguration Configuration
 @inject IJSRuntime JS
 @rendermode InteractiveServer
-@using BrainTumorClassifier.Models
 @using System.Globalization
+@using BrainTumorClassifier.Models
+
 <h3>Brain Tumor Prediction</h3>
 
-<InputFile OnChange="OnInputFileChange" accept="image/*" />
-
-@if (pieData != null)
-{
-    <div style="width:400px; height:400px;">
-        <ChartJsPieChart Data="@pieData" />
+<div class="upload-container">
+    <div class="image-placeholder">
+        @if (selectedImage != null)
+        {
+            <img src="@selectedImage" alt="Selected Image" />
+        }
+        else
+        {
+            <div class="placeholder-text">Image placeholder</div>
+        }
     </div>
-}
 
-@if (errorMessage != null)
-{
-    <p style="color:red">@errorMessage</p>
-}
+    <InputFile OnChange="OnInputFileChange" accept="image/*" />
+
+    <button class="send-btn" @onclick="SendImageToEndpoint" disabled="@(selectedImage == null)">Send Image for Prediction</button>
+
+    @if (errorMessage != null)
+    {
+        <p style="color:red">@errorMessage</p>
+    }
+
+    @if (predictionScores != null)
+    {
+        <div class="bar-chart-container">
+            @foreach (var kvp in predictionScores.OrderByDescending(kvp => kvp.Value))
+            {
+                <div class="bar-item">
+                    <div class="bar-label">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(kvp.Key.Replace('_', ' '))</div>
+                    <div class="bar">
+                        <div class="bar-fill" style="width:@(kvp.Value*100)%"></div>
+                        <div class="bar-percentage">@($"{kvp.Value * 100:0.##}%")</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</div>
+
+<style>
+    .upload-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .image-placeholder {
+        width: 400px;
+        height: 300px;
+        border: 2px dashed #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f9f9f9;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+        .image-placeholder img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+    .placeholder-text {
+        color: #999;
+        font-size: 1.2rem;
+    }
+
+    .send-btn {
+        padding: 12px 24px;
+        font-size: 1rem;
+        border: none;
+        background-color: #1b6ec2;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .send-btn:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+
+    .bar-chart-container {
+        width: 100%;
+        max-width: 500px;
+        margin: 20px auto 0 auto;
+        display: block;
+    }
+
+    .bar-item {
+        margin-bottom: 12px;
+    }
+
+    .bar-label {
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: #333;
+    }
+
+    .bar {
+        position: relative;
+        background-color: #e0e0e0;
+        border-radius: 8px;
+        height: 24px;
+        width: 100%;
+        overflow: hidden;
+        display: block;
+    }
+
+    .bar-fill {
+        background-color: #1b6ec2;
+        height: 100%;
+        transition: width 0.5s ease-in-out;
+        display: block;
+    }
+
+    .bar-percentage {
+        position: absolute;
+        right: 8px;
+        top: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        color: white;
+        font-weight: 600;
+        text-shadow: 0 0 3px rgba(0,0,0,0.7);
+    }
+</style>
 
 @code {
-    private ChartJsPieChartData? pieData;
+    private string? selectedImage;
+    private IBrowserFile? selectedFile;
     private string? errorMessage;
+    private Dictionary<string, double>? predictionScores;
 
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
         errorMessage = null;
-        pieData = null;
-        var file = e.File;
+        predictionScores = null;
+        selectedFile = e.File;
+        using var ms = new MemoryStream();
+        await selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(ms);
+        var base64 = Convert.ToBase64String(ms.ToArray());
+        selectedImage = $"data:{selectedFile.ContentType};base64,{base64}";
+    }
+
+    private async Task SendImageToEndpoint()
+    {
+        errorMessage = null;
+        predictionScores = null;
+        if (selectedFile == null)
+        {
+            errorMessage = "Please select an image first.";
+            return;
+        }
+
+        using var ms = new MemoryStream();
+        await selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(ms);
+        var base64 = Convert.ToBase64String(ms.ToArray());
+        var payload = new { image = base64 };
+
+        var endpointUrl = Configuration["AzureML:EndpointUrl"];
+        var apiKey = Configuration["AzureML:ApiKey"];
+
+        if (string.IsNullOrEmpty(endpointUrl) || string.IsNullOrEmpty(apiKey))
+        {
+            errorMessage = "Azure ML endpoint URL or API key is not configured.";
+            return;
+        }
+
+        var request = new HttpRequestMessage(HttpMethod.Post, endpointUrl);
+        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+        request.Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+
         try
         {
-            using var ms = new MemoryStream();
-            await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(ms);
-            var base64 = Convert.ToBase64String(ms.ToArray());
-
-            var payload = new { image = base64 };
-
-            var endpointUrl = Configuration["AzureML:EndpointUrl"];
-            var apiKey = Configuration["AzureML:ApiKey"];
-
-            if (string.IsNullOrEmpty(endpointUrl) || string.IsNullOrEmpty(apiKey))
-            {
-                errorMessage = "Azure ML endpoint URL or API key is not configured.";
-                return;
-            }
-
-            var request = new HttpRequestMessage(HttpMethod.Post, endpointUrl);
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
-            request.Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
-
             var response = await Http.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
-                // --- Double-deserialize here ---
                 var raw = await response.Content.ReadAsStringAsync();
                 string innerJson = System.Text.Json.JsonSerializer.Deserialize<string>(raw);
                 var result = System.Text.Json.JsonSerializer.Deserialize<PredictionResult>(innerJson);
                 Console.WriteLine(raw);
                 if (result != null && result.Scores != null)
                 {
-                    // Format scores as percentages with 2 decimals
-                    var lines = result.Scores
-                        .Select(kvp => $"{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(kvp.Key.Replace('_', ' '))}: {(kvp.Value * 100):0.##}%")
-                        .ToList();
-
-                    // Add the current date/time
-                    lines.Add($"Current date: {DateTime.Now:F}");
-
-                    // Combine into a single string
-                    var message = string.Join("\n", lines);
-
-                    // Show as alert popup in browser
-                    await JS.InvokeVoidAsync("alert", message);
+                    predictionScores = result.Scores.ToDictionary(kvp => kvp.Key, kvp => (double)kvp.Value);
                 }
                 else
                 {
                     errorMessage = "Invalid response from prediction service.";
                 }
-
             }
             else
             {
@@ -91,5 +216,4 @@
             errorMessage = $"Error: {ex.Message}";
         }
     }
-
 }

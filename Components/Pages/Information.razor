@@ -1,0 +1,80 @@
+﻿@page "/information"
+
+<style>
+    .information-bg{
+        background-image: linear-gradient(180deg, rgb(9, 28, 78) 0%, rgb(7, 28, 51) 70%);
+        padding: 2%;
+    }
+
+    .tumor-section {
+        position: relative;
+        margin: 10px,0,0,10px;
+        min-height: 350px;
+        margin-bottom: 32px;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    }
+
+    .tumor-bg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        filter: brightness(0.5) blur(2px);
+        z-index: 1;
+    }
+
+    .tumor-content {
+        position: relative;
+        z-index: 2;
+        color: #fff;
+        padding: 36px 32px;
+        max-width: 700px;
+    }
+
+    .tumor-title {
+        font-size: 2.2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        letter-spacing: 1px;
+    }
+
+    .tumor-description {
+        font-size: 1.18rem;
+        line-height: 1.6;
+    }
+</style>
+<div class="information-bg">
+<div class="tumor-section">
+        <div class="tumor-bg" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/7b/Glioma.gif');"></div>
+    <div class="tumor-content">
+        <div class="tumor-title">Glioma</div>
+        <div class="tumor-description">
+            A glioma is a type of brain tumor that develops from glial cells, which support nerve cells in the brain and spinal cord. Gliomas can be low-grade (slow-growing) or high-grade (fast-growing and more aggressive). The main subtypes include astrocytomas, oligodendrogliomas, and ependymomas. Symptoms vary depending on tumor location but can include headaches, seizures, and neurological deficits. Gliomas are often cancerous and can be life-threatening, especially at higher grades.
+        </div>
+    </div>
+</div>
+
+<div class="tumor-section">
+    <div class="tumor-bg" style="background-image: url('https://neurochirurgie.insel.ch/fileadmin/Erkrankungen/Hirntumor/Meningeom/Meningeom-bildgebende-Diagnostik.jpg');"></div>
+    <div class="tumor-content">
+        <div class="tumor-title">Meningioma</div>
+        <div class="tumor-description">
+            Meningioma is the most common primary brain tumor, making up about 30% of all brain tumors. These tumors originate in the meninges-the protective layers covering the brain and spinal cord. Most meningiomas are benign and slow-growing, sometimes existing for years before detection. Subtypes include convexity, falcine, intraventricular, skull base, sphenoid wing, olfactory groove, posterior fossa/petrous, and suprasellar meningiomas. Symptoms depend on the tumor’s size and location and may include headaches, vision changes, or neurological problems.
+        </div>
+    </div>
+</div>
+
+<div class="tumor-section">
+        <div class="tumor-bg" style="background-image: url('https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fncpendmet1039/MediaObjects/41574_2009_Article_BFncpendmet1039_Fig1_HTML.jpg');"></div>
+    <div class="tumor-content">
+        <div class="tumor-title">Pituitary Tumor</div>
+        <div class="tumor-description">
+            A pituitary tumor is an abnormal growth in the pituitary gland, a small organ at the base of the brain that controls many hormones in the body. Most pituitary tumors are benign (pituitary adenomas), but they can be invasive or, rarely, malignant. These tumors can cause hormonal imbalances, vision problems, and other symptoms depending on the hormones affected. Diagnosis involves imaging and hormone tests. Tumors are classified by size (microadenoma or macroadenoma) and whether they produce excess hormones.
+        </div>
+    </div>
+</div>
+</div>

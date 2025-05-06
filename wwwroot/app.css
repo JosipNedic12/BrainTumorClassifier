@@ -49,3 +49,61 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+.background {
+    background-image: url('https://images.pond5.com/human-brain-x-ray-scan-071362333_prevstill.jpeg');
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    min-width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 15%;
+}
+
+.overlay {
+    background-color: rgba(0,0,0,0.5);
+    padding: 60px 40px;
+    border-radius: 16px;
+    text-align: center;
+}
+
+h1 {
+    color: #fff;
+    font-size: 4vw;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+p {
+    color: #fff;
+    font-size: 1.5vw;
+    margin-bottom: 30px;
+}
+
+.button-group {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.main-btn {
+    background: transparent;
+    border: 2px solid #fff;
+    color: #fff;
+    padding: 16px 32px;
+    font-size: 1vw;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+    .main-btn:hover {
+        background: #fff;
+        color: #222;
+    }
+
+.content {
+    margin: 0 ;
+    padding: 0 ;
+}
