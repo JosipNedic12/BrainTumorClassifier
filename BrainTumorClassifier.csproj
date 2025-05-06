@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\Josip\.nuget\packages\psc.blazor.components.chartjs\8.0.8\contentFiles\any\net8.0\psc_ico.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PSC.Blazor.Components.Chartjs" Version="8.0.8" />
+  </ItemGroup>
+
+</Project>

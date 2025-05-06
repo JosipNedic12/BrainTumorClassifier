@@ -1,0 +1,95 @@
+﻿@page "/upload-and-predict"
+@inject HttpClient Http
+@inject IConfiguration Configuration
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+@using BrainTumorClassifier.Models
+@using System.Globalization
+<h3>Brain Tumor Prediction</h3>
+
+<InputFile OnChange="OnInputFileChange" accept="image/*" />
+
+@if (pieData != null)
+{
+    <div style="width:400px; height:400px;">
+        <ChartJsPieChart Data="@pieData" />
+    </div>
+}
+
+@if (errorMessage != null)
+{
+    <p style="color:red">@errorMessage</p>
+}
+
+@code {
+    private ChartJsPieChartData? pieData;
+    private string? errorMessage;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        errorMessage = null;
+        pieData = null;
+        var file = e.File;
+        try
+        {
+            using var ms = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(ms);
+            var base64 = Convert.ToBase64String(ms.ToArray());
+
+            var payload = new { image = base64 };
+
+            var endpointUrl = Configuration["AzureML:EndpointUrl"];
+            var apiKey = Configuration["AzureML:ApiKey"];
+
+            if (string.IsNullOrEmpty(endpointUrl) || string.IsNullOrEmpty(apiKey))
+            {
+                errorMessage = "Azure ML endpoint URL or API key is not configured.";
+                return;
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Post, endpointUrl);
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+            request.Content = new StringContent(System.Text.Json.JsonSerializer.Serialize(payload), System.Text.Encoding.UTF8, "application/json");
+
+            var response = await Http.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                // --- Double-deserialize here ---
+                var raw = await response.Content.ReadAsStringAsync();
+                string innerJson = System.Text.Json.JsonSerializer.Deserialize<string>(raw);
+                var result = System.Text.Json.JsonSerializer.Deserialize<PredictionResult>(innerJson);
+                Console.WriteLine(raw);
+                if (result != null && result.Scores != null)
+                {
+                    // Format scores as percentages with 2 decimals
+                    var lines = result.Scores
+                        .Select(kvp => $"{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(kvp.Key.Replace('_', ' '))}: {(kvp.Value * 100):0.##}%")
+                        .ToList();
+
+                    // Add the current date/time
+                    lines.Add($"Current date: {DateTime.Now:F}");
+
+                    // Combine into a single string
+                    var message = string.Join("\n", lines);
+
+                    // Show as alert popup in browser
+                    await JS.InvokeVoidAsync("alert", message);
+                }
+                else
+                {
+                    errorMessage = "Invalid response from prediction service.";
+                }
+
+            }
+            else
+            {
+                errorMessage = $"Prediction request failed: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+    }
+
+}
