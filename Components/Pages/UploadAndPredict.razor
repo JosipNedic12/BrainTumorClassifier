@@ -6,48 +6,100 @@
 @using System.Globalization
 @using BrainTumorClassifier.Models
 
-<h3>Brain Tumor Prediction</h3>
-
-<div class="upload-container">
-    <div class="image-placeholder">
-        @if (selectedImage != null)
-        {
-            <img src="@selectedImage" alt="Selected Image" />
-        }
-        else
-        {
-            <div class="placeholder-text">Image placeholder</div>
-        }
+<div class="page-overlay">
+    <div class="centered-title overlayed-element">
+        Brain Tumor Prediction
     </div>
 
-    <InputFile OnChange="OnInputFileChange" accept="image/*" />
-
-    <button class="send-btn" @onclick="SendImageToEndpoint" disabled="@(selectedImage == null)">Send Image for Prediction</button>
-
-    @if (errorMessage != null)
-    {
-        <p style="color:red">@errorMessage</p>
-    }
-
-    @if (predictionScores != null)
-    {
-        <div class="bar-chart-container">
-            @foreach (var kvp in predictionScores.OrderByDescending(kvp => kvp.Value))
+    <div class="upload-container overlayed-element">
+        <div class="image-placeholder overlayed-element">
+            @if (selectedImage != null)
             {
-                <div class="bar-item">
-                    <div class="bar-label">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(kvp.Key.Replace('_', ' '))</div>
-                    <div class="bar">
-                        <div class="bar-fill" style="width:@(kvp.Value*100)%"></div>
-                        <div class="bar-percentage">@($"{kvp.Value * 100:0.##}%")</div>
-                    </div>
-                </div>
+                <img src="@selectedImage" alt="Selected Image" />
+            }
+            else
+            {
+                <div class="placeholder-text">Select image</div>
             }
         </div>
-    }
 
+        <InputFile OnChange="OnInputFileChange" accept="image/*" />
+
+        <button class="send-btn overlayed-element" @onclick="SendImageToEndpoint" disabled="@(selectedImage == null)">Send Image for Prediction</button>
+
+        @if (errorMessage != null)
+        {
+            <p style="color:red">@errorMessage</p>
+        }
+
+        @if (predictionScores != null)
+        {
+            <div class="bar-chart-container overlayed-element">
+                @foreach (var kvp in predictionScores.OrderByDescending(kvp => kvp.Value))
+                {
+                    <div class="bar-item">
+                        <div class="bar-label">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(kvp.Key.Replace('_', ' '))</div>
+                        <div class="bar">
+                            <div class="bar-fill" style="width:@((kvp.Value * 100).ToString(CultureInfo.InvariantCulture))%"></div>
+                            <div class="bar-percentage">@($"{kvp.Value * 100:0.##}%")</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>
 
 <style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    input[type="file"] {
+        color: #fff; 
+    }
+    body {
+        min-height: 100vh;
+        background: url('https://thisismeatfree.com/wp-content/uploads/2015/04/brainscan.jpg') no-repeat center center fixed;
+        background-size: cover;
+        font-family: Arial, sans-serif;
+    }
+
+    .page-overlay {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.2);
+    }
+
+    .centered-title {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80px;
+        font-size: 2.2rem;
+        font-weight: bold;
+        color: #fff;
+        margin-bottom: 32px;
+        margin-top: 0;
+        box-sizing: border-box;
+        margin-left: 10%;
+        margin-right: 10%;
+        text-align: center;
+        letter-spacing: 1px;
+    }
+
+    .overlayed-element {
+        background: rgba(0,0,0,0.5);
+        border-radius: 12px;
+        padding: 16px;
+        box-sizing: border-box;
+    }
+
     .upload-container {
         display: flex;
         flex-direction: column;
@@ -55,6 +107,7 @@
         gap: 20px;
         max-width: 600px;
         margin: 0 auto;
+        width: 100%;
     }
 
     .image-placeholder {
@@ -64,9 +117,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: #f9f9f9;
+        background-color: rgba(0,0,0,0.8);
         border-radius: 12px;
         overflow: hidden;
+        margin-bottom: 10px;
     }
 
         .image-placeholder img {
@@ -76,8 +130,9 @@
         }
 
     .placeholder-text {
-        color: #999;
+        color: #ddd;
         font-size: 1.2rem;
+        text-shadow: 0 0 5px #000;
     }
 
     .send-btn {
@@ -89,6 +144,10 @@
         border-radius: 8px;
         cursor: pointer;
         transition: background-color 0.3s ease;
+        width: 100%;
+        max-width: 250px;
+        font-weight: bold;
+        margin-top: 10px;
     }
 
         .send-btn:disabled {
@@ -110,12 +169,12 @@
     .bar-label {
         font-weight: 600;
         margin-bottom: 4px;
-        color: #333;
+        color: #fff;
     }
 
     .bar {
         position: relative;
-        background-color: #e0e0e0;
+        background-color: rgba(0,0,0,0.9);
         border-radius: 8px;
         height: 24px;
         width: 100%;
