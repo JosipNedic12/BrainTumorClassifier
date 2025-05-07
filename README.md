@@ -38,7 +38,6 @@ dotnet restore
     }
   }
   ```
-- **Never commit your real `appsettings.json` to source control.**
 
 4. **Run the app:**
 dotnet run
