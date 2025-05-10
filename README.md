@@ -1,6 +1,8 @@
 # Brain Tumor Classifier Web App
 
 This is a Blazor (.NET 8) web application for brain tumor classification using a deep learning model deployed on Azure Machine Learning. Users can upload a brain MRI image, and the app will display the predicted tumor type and confidence scores in a popup.
+## Video
+[Demo Video](https://www.youtube.com/watch?v=clnpIjp5r88)
 
 ## Features
 
